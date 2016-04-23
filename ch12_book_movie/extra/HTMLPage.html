@@ -40,29 +40,79 @@
 		$(document).ready(function(){
 			var onClickSeat = function() {
 
-				var seat = $(this).attr('class');
-				var x = $(this).attr('data-x');
-				var y = $(this).attr('data-y');
+				var isTwoTicket = $(':radio[name="ticket_type"]:checked').val();
 
-				if(seat == 'seat enable'){		
-					if(confirm('Do you reserve your seats?')){
-						//$(this).off('click');
-						socket.emit('reserve', {
-							x: x, 
-							y: y
-						});
+				if(isTwoTicket == '1'){
+					var seat = $(this).attr('class');
+					var x = $(this).attr('data-x');
+					var y = $(this).attr('data-y');
+	
+					if(seat == 'seat enable'){		
+						if(confirm('Do you reserve selected seat?')){
+							//$(this).off('click');
+							socket.emit('reserve', {
+								x: x, 
+								y: y
+							});
+						} else {
+							alert('The process end..');
+						}
 					} else {
-						alert('The process end..');
+        	                                if(confirm('Do you cancel selected seat?')){
+        	                                        socket.emit('cancel', {
+        	                                                x: x, 
+        	                                                y: y
+        	                                        });
+        	                                } else {
+        	                                        alert('The process end..');
+        	                                }
 					}
-				} else {
-                                        if(confirm('Do you cancel your seats?')){
-                                                socket.emit('cancel', {
-                                                        x: x, 
-                                                        y: y
-                                                });
-                                        } else {
-                                                alert('The process end..');
-                                        }
+				} else { //isTwoTicket == '2'
+
+                                        var seat = $(this).attr('class');
+                                        var x = $(this).attr('data-x');
+                                        var y = $(this).attr('data-y');					
+
+					var rightSeat = $(this).parent().find("[data-x='" + (+x + +1) + "']");
+					var leftSeat  = $(this).parent().find("[data-x='" + (+x + -1) + "']");
+					
+					if(rightSeat.attr('class') == 'seat tempHover'){
+                                                if(confirm('Do you reserve selected two seats?')){
+
+                                        		rightSeat.removeClass('tempHover');
+                                        		rightSeat.addClass('enable');
+
+                                                        socket.emit('reserve', {
+                                                                x: x, 
+                                                                y: y
+                                                        });
+							socket.emit('reserve', {
+								x: +x + +1,
+								y: y
+							});
+                                                } else {
+                                                        alert('The process end..');
+                                                }
+					} else if (leftSeat.attr('class') == 'seat tempHover'){
+                                                if(confirm('Do you reserve selected two seats?')){
+
+                                                        leftSeat.removeClass('tempHover');
+                                                        leftSeat.addClass('enable');
+
+                                                        socket.emit('reserve', {
+                                                                x: x, 
+                                                                y: y
+                                                        });
+                                                        socket.emit('reserve', {
+                                                                x: +x - +1,
+                                                                y: y
+                                                        });
+                                                } else {
+                                                        alert('The process end..');
+                                                }
+					} else {
+						alert('You cannot reserve only 1 seat..');
+					}
 				}
 			};
 
@@ -74,9 +124,11 @@
 					return ;
 				}
 
-				var seat = $(this).attr('class');
+				if($(this).attr('class') == 'seat disable') {
+					return ;	
+				}
+
                                 var x = $(this).attr('data-x');
-                                var y = $(this).attr('data-y');
 
 				var rightSeat = $(this).parent().find("[data-x='" + (+x + +1) + "']");
 				var leftSeat  = $(this).parent().find("[data-x='" + (+x + -1) + "']");
@@ -97,9 +149,7 @@
 				}
 			}
 			var onHoverOut = function() {
-                                var seat = $(this).attr('class');
                                 var x = $(this).attr('data-x');
-                                var y = $(this).attr('data-y');
 
                                 var rightSeat = $(this).parent().find("[data-x='" + (+x + +1) + "']");
                                 var leftSeat  = $(this).parent().find("[data-x='" + (+x + -1) + "']");
