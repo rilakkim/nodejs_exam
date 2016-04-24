@@ -40,16 +40,17 @@
 		$(document).ready(function(){
 			var onClickSeat = function() {
 
+				//2인 예약인지 확인(radio box 체크)
 				var isTwoTicket = $(':radio[name="ticket_type"]:checked').val();
 
 				if(isTwoTicket == '1'){
 					var seat = $(this).attr('class');
 					var x = $(this).attr('data-x');
 					var y = $(this).attr('data-y');
-	
-					if(seat == 'seat enable'){		
+
+					if(seat == 'seat enable'){
+					//예약 가능일 경우 예약		
 						if(confirm('Do you reserve selected seat?')){
-							//$(this).off('click');
 							socket.emit('reserve', {
 								x: x, 
 								y: y
@@ -58,6 +59,7 @@
 							alert('The process end..');
 						}
 					} else {
+					//이미 예약되어 있는 경우 취소
         	                                if(confirm('Do you cancel selected seat?')){
         	                                        socket.emit('cancel', {
         	                                                x: x, 
@@ -73,9 +75,11 @@
                                         var x = $(this).attr('data-x');
                                         var y = $(this).attr('data-y');					
 
+					//선택한 좌석의 오른쪽과 왼쪽 좌석의 상태를 조사
 					var rightSeat = $(this).parent().find("[data-x='" + (+x + +1) + "']");
 					var leftSeat  = $(this).parent().find("[data-x='" + (+x + -1) + "']");
 					
+					//오른쪽 좌석이 선택되어진 경우, 현재 좌석과 오른쪽 좌석을 예약
 					if(rightSeat.attr('class') == 'seat tempHover'){
                                                 if(confirm('Do you reserve selected two seats?')){
 
@@ -94,6 +98,7 @@
                                                         alert('The process end..');
                                                 }
 					} else if (leftSeat.attr('class') == 'seat tempHover'){
+					//왼쪽 좌석이 선택되어진 경우, 현재 좌석과 왼쪽 좌석을 예약
                                                 if(confirm('Do you reserve selected two seats?')){
 
                                                         leftSeat.removeClass('tempHover');
@@ -116,28 +121,34 @@
 				}
 			};
 
+			//2인 예약 상황에서 우측(우측이 없을 경우 좌측)에 동시 hover effect를 주기 위한 함수
 			var onHover = function() {
 				
+				//2인 예약상황인지 조사
 				var isTwoTicket = $(':radio[name="ticket_type"]:checked').val();
 			
+				//1인 예약의 경우 해당 프로세스 종료
 				if(isTwoTicket == '1'){
 					return ;
 				}
 
+				//예약이 되어 있는 좌석에 mouse over할 경우, 프로세스 무시(2인 취소 기능 미지원)
 				if($(this).attr('class') == 'seat disable') {
 					return ;	
 				}
 
                                 var x = $(this).attr('data-x');
 
+                                /* element의 'class' attribute 에 따른 좌석 상태
+                                 * undefined     :       no element (out of border)
+                                 * seat          :       empty seat
+                                 * seat enable   :       enable seat
+                                 * seat disable  :       disabed seat
+				*/
 				var rightSeat = $(this).parent().find("[data-x='" + (+x + +1) + "']");
 				var leftSeat  = $(this).parent().find("[data-x='" + (+x + -1) + "']");
-				//neighborSeat is..
-				//undefined	:	no element (out of border)
-				//seat		:	empty seat
-				//seat enable	:	enable seat
-				//seat disable	:	disabed seat
 				
+				//defulat policy : 오른쪽이 비어있을 경우 오른쪽. 그 외의 경우 왼쪽에 추가 hover effect
 				if(rightSeat.attr('class') == 'seat enable'){
 					rightSeat.removeClass('enable');
 					rightSeat.addClass('tempHover');
@@ -145,10 +156,13 @@
 					leftSeat.removeClass('enable');
 					leftSeat.addClass('tempHover');
 				} else {
-				
+				//오른쪽, 왼쪽이 모두 hover 표시가 불가능할 경우 표시하지 않음 (1자리 표시)
 				}
 			}
+
 			var onHoverOut = function() {
+			//특정영역을 벗어날 경우, 오른쪽/왼쪽의 hover effect를 제거하기 위한 함수
+
                                 var x = $(this).attr('data-x');
 
                                 var rightSeat = $(this).parent().find("[data-x='" + (+x + +1) + "']");
